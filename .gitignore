@@ -12,3 +12,10 @@ node_modules
 
 # Desktop Services Store on macOS
 .DS_Store
+
+# Any subfolder in public
+public/*
+
+# Other
+.pry_history
+.rake_tasks~
