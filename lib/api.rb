@@ -1,6 +1,7 @@
 require 'json'
 require 'open-uri'
 require 'pathname'
+require 'logger'
 
 class Api
   attr_reader :api
@@ -13,11 +14,11 @@ class Api
     prepare_directory
 
     json = fetch_json(api)
-    json.each do |object|
+    with_image = json.select do |object|
       fetch_image(object['image'])
     end
 
-    write_pretty(json)
+    write_pretty(with_image)
   end
 
   def prepare_directory
@@ -36,6 +37,13 @@ class Api
   def fetch_image(path)
     destination = images.join(path)
     destination.write(fetch(path))
+  rescue => e
+    logger.error "Error fechting image: #{host}/#{path}"
+    nil
+  end
+
+  def logger
+    @logger ||= Logger.new($stdout)
   end
 
   def images
