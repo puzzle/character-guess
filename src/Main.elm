@@ -1,8 +1,10 @@
 module Main exposing (..)
 
-import Html exposing (Html, text, div, h1, img)
-import Html.Attributes exposing (src, class)
+import Html exposing (Html, text, div, h1, img, figure, figcaption, ul, li, a)
+import Html.Attributes exposing (src, class, href, classList)
+import Html.Events exposing (onClick)
 import Api exposing (Record, getRecords)
+import List.Extra exposing (groupsOf)
 import Http
 
 
@@ -29,6 +31,7 @@ init =
 type Msg
     = NoOp
     | RecordsRecieved (Result Http.Error (List Record))
+    | FetchRecords String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -39,6 +42,9 @@ update msg model =
 
         RecordsRecieved (Err err) ->
             Debug.crash "Error:" err
+
+        FetchRecords endpoint ->
+            ( { model | endpoint = endpoint }, loadRecords endpoint )
 
         _ ->
             ( model, Cmd.none )
@@ -51,22 +57,41 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text ("Accesing " ++ model.endpoint) ]
+        [ viewNavBar model.endpoint
         , viewRecords model.records
         ]
+
+
+viewNavBar : String -> Html Msg
+viewNavBar activeEndpoint =
+    List.map (viewNavBarItem activeEndpoint) [ "people", "starships", "vehicles" ]
+        |> ul [ class "tab tab-block" ]
+
+
+viewNavBarItem : String -> String -> Html Msg
+viewNavBarItem activeEndpoint endpoint =
+    li
+        [ class "tab-item"
+        , classList
+            [ ( "active", activeEndpoint == endpoint )
+            ]
+        ]
+        [ a [ (onClick <| FetchRecords endpoint), (href "#") ] [ text endpoint ] ]
 
 
 viewRecords : List Record -> Html Msg
 viewRecords records =
     List.map viewRecord records
+        |> groupsOf 3
+        |> List.map (\items -> div [ class "columns" ] items)
         |> div [ class "container" ]
 
 
 viewRecord : Record -> Html Msg
 viewRecord record =
-    div []
-        [ text record.name
-        , img [ src record.image ] []
+    figure [ class "column", class "col-3" ]
+        [ img [ src record.image ] []
+        , figcaption [] [ text record.name ]
         ]
 
 
