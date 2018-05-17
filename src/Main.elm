@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (Html, text, div, h1, img)
-import Html.Attributes exposing (src)
+import Html.Attributes exposing (src, class)
 import Api exposing (Record, getRecords)
 import Http
 
@@ -10,12 +10,16 @@ import Http
 
 
 type alias Model =
-    { records : List Record }
+    { records : List Record, endpoint : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { records = [] }, Cmd.batch [ loadRecords ] )
+    let
+        model =
+            { records = [], endpoint = "people" }
+    in
+        ( model, Cmd.batch [ loadRecords model.endpoint ] )
 
 
 
@@ -47,8 +51,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ img [ src "/logo.svg" ] []
-        , h1 [] [ text "Your Elm App is working!" ]
+        [ h1 [] [ text ("Accesing " ++ model.endpoint) ]
         , viewRecords model.records
         ]
 
@@ -56,7 +59,7 @@ view model =
 viewRecords : List Record -> Html Msg
 viewRecords records =
     List.map viewRecord records
-        |> div []
+        |> div [ class "container" ]
 
 
 viewRecord : Record -> Html Msg
@@ -71,9 +74,9 @@ viewRecord record =
 -- HTTP --
 
 
-loadRecords : Cmd Msg
-loadRecords =
-    Http.send RecordsRecieved (Api.getRecords "people")
+loadRecords : String -> Cmd Msg
+loadRecords endpoint =
+    Http.send RecordsRecieved (Api.getRecords endpoint)
 
 
 
