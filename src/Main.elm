@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Html exposing (Html, text, div, h1, img, figure, figcaption, ul, li, a)
 import Html.Attributes exposing (src, class, href, classList)
@@ -6,22 +6,31 @@ import Html.Events exposing (onClick)
 import Api exposing (Record, getRecords)
 import List.Extra exposing (groupsOf)
 import Http
+import Random
+import Random.Int
+import Random.List
 
 
 ---- MODEL ----
 
 
 type alias Model =
-    { records : List Record, endpoint : String }
+    { records : List Record
+    , endpoint : String
+    , seed : Random.Seed
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
     let
         model =
-            { records = [], endpoint = "people" }
+            { records = []
+            , endpoint = "people"
+            , seed = Random.initialSeed 1
+            }
     in
-        ( model, Cmd.batch [ loadRecords model.endpoint ] )
+        ( model, Cmd.batch [ loadRecords model.endpoint, generateSeed ] )
 
 
 
@@ -29,16 +38,20 @@ init =
 
 
 type Msg
-    = NoOp
-    | RecordsRecieved (Result Http.Error (List Record))
+    = RecordsRecieved (Result Http.Error (List Record))
     | FetchRecords String
+    | NewSeed Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RecordsRecieved (Ok records) ->
-            ( { model | records = records }, Cmd.none )
+            let
+                ( shuffled, newSeed ) =
+                    shuffle model.seed records
+            in
+                ( { model | records = shuffled, seed = newSeed }, Cmd.none )
 
         RecordsRecieved (Err err) ->
             Debug.crash "Error:" err
@@ -46,8 +59,18 @@ update msg model =
         FetchRecords endpoint ->
             ( { model | endpoint = endpoint }, loadRecords endpoint )
 
-        _ ->
-            ( model, Cmd.none )
+        NewSeed newSeed ->
+            ( { model | seed = Random.initialSeed newSeed }, Cmd.none )
+
+
+generateSeed : Cmd Msg
+generateSeed =
+    Random.generate NewSeed Random.Int.anyInt
+
+
+shuffle : Random.Seed -> List Record -> ( List Record, Random.Seed )
+shuffle seed records =
+    Random.step (Random.List.shuffle records) seed
 
 
 
