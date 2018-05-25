@@ -8,8 +8,6 @@ import Http
 import Random
 import Random.Int
 import Random.List
-import Task
-import Time
 
 
 ---- MODEL ----
@@ -146,29 +144,28 @@ viewStatusBar records =
 
 viewGuess : Record -> List Record -> Html Msg
 viewGuess current guesses =
-    div [ class "container" ]
-        [ viewImage current
-        , viewGuesses guesses
+    div []
+        [ div [ class "container" ] [ viewImage current ]
+        , div [ class "container" ] (viewGuesses guesses)
         ]
 
 
-viewGuesses : List Record -> Html Msg
+viewGuesses : List Record -> List (Html Msg)
 viewGuesses records =
     records
         |> List.map viewButton
-        |> div [ class "container" ]
 
 
 viewImage : Record -> Html Msg
 viewImage record =
-    figure [ class "column", class "col-3" ]
+    figure [ class "column" ]
         [ img [ src record.image ] []
         ]
 
 
 viewButton : Record -> Html Msg
 viewButton record =
-    button [ onClick (Guess record) ] [ text record.name ]
+    button [ onClick (Guess record), class "btn column col-3" ] [ text record.name ]
 
 
 
