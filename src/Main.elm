@@ -1,14 +1,15 @@
 module Main exposing (main)
 
-import Html exposing (Html, text, div, h1, img, figure, figcaption, ul, li, a)
+import Html exposing (Html, text, div, h1, img, figure, figcaption, ul, li, a, button)
 import Html.Attributes exposing (src, class, href, classList)
 import Html.Events exposing (onClick)
 import Api exposing (Record, getRecords)
-import List.Extra exposing (groupsOf)
 import Http
 import Random
 import Random.Int
 import Random.List
+import Task
+import Time
 
 
 ---- MODEL ----
@@ -16,6 +17,9 @@ import Random.List
 
 type alias Model =
     { records : List Record
+    , current : Record
+    , guesses : List Record
+    , correct : List Record
     , endpoint : String
     , seed : Random.Seed
     }
@@ -26,6 +30,9 @@ init =
     let
         model =
             { records = []
+            , current = Api.empty
+            , guesses = []
+            , correct = []
             , endpoint = "people"
             , seed = Random.initialSeed 1
             }
@@ -41,17 +48,15 @@ type Msg
     = RecordsRecieved (Result Http.Error (List Record))
     | FetchRecords String
     | NewSeed Int
+    | Guess Record
+    | NewGuess
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RecordsRecieved (Ok records) ->
-            let
-                ( shuffled, newSeed ) =
-                    shuffle model.seed records
-            in
-                ( { model | records = shuffled, seed = newSeed }, Cmd.none )
+            nextModel model records
 
         RecordsRecieved (Err err) ->
             Debug.crash "Error:" err
@@ -61,6 +66,15 @@ update msg model =
 
         NewSeed newSeed ->
             ( { model | seed = Random.initialSeed newSeed }, Cmd.none )
+
+        Guess record ->
+            if record == model.current then
+                update NewGuess { model | correct = record :: model.correct }
+            else
+                ( model, Cmd.none )
+
+        NewGuess ->
+            nextModel model model.records
 
 
 generateSeed : Cmd Msg
@@ -73,6 +87,28 @@ shuffle seed records =
     Random.step (Random.List.shuffle records) seed
 
 
+nextModel : Model -> List Record -> ( Model, Cmd Msg )
+nextModel model records =
+    let
+        ( shuffled, newSeed ) =
+            shuffle model.seed records
+
+        current =
+            shuffled |> List.head |> Maybe.withDefault Api.empty
+
+        ( guesses, nextSeed ) =
+            shuffled |> List.take 3 |> shuffle newSeed
+    in
+        ( { model
+            | records = shuffled
+            , seed = nextSeed
+            , guesses = guesses
+            , current = current
+          }
+        , Cmd.none
+        )
+
+
 
 ---- VIEW ----
 
@@ -81,7 +117,8 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model.endpoint
-        , viewRecords model.records
+        , viewStatusBar model.correct
+        , viewGuess model.current model.guesses
         ]
 
 
@@ -102,20 +139,36 @@ viewNavBarItem activeEndpoint endpoint =
         [ a [ (onClick <| FetchRecords endpoint), (href "#") ] [ text endpoint ] ]
 
 
-viewRecords : List Record -> Html Msg
-viewRecords records =
-    List.map viewRecord records
-        |> groupsOf 3
-        |> List.map (\items -> div [ class "columns" ] items)
+viewStatusBar : List Record -> Html Msg
+viewStatusBar records =
+    div [ class "container" ] [ text ("Correct: " ++ toString ((List.length records))) ]
+
+
+viewGuess : Record -> List Record -> Html Msg
+viewGuess current guesses =
+    div [ class "container" ]
+        [ viewImage current
+        , viewGuesses guesses
+        ]
+
+
+viewGuesses : List Record -> Html Msg
+viewGuesses records =
+    records
+        |> List.map viewButton
         |> div [ class "container" ]
 
 
-viewRecord : Record -> Html Msg
-viewRecord record =
+viewImage : Record -> Html Msg
+viewImage record =
     figure [ class "column", class "col-3" ]
         [ img [ src record.image ] []
-        , figcaption [] [ text record.name ]
         ]
+
+
+viewButton : Record -> Html Msg
+viewButton record =
+    button [ onClick (Guess record) ] [ text record.name ]
 
 
 

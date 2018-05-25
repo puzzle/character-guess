@@ -2,6 +2,7 @@ module Api
     exposing
         ( Record
         , getRecords
+        , empty
         )
 
 import Http
@@ -11,6 +12,13 @@ import Json.Decode as Decode
 type alias Record =
     { name : String
     , image : String
+    }
+
+
+empty : Record
+empty =
+    { name = "Tux"
+    , image = "https://www.gnu.org/graphics/babies/BabyTux.pngs"
     }
 
 
