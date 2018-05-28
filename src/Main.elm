@@ -47,7 +47,6 @@ type Msg
     | FetchRecords String
     | NewSeed Int
     | Guess Record
-    | NewGuess
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -67,12 +66,9 @@ update msg model =
 
         Guess record ->
             if record == model.current then
-                update NewGuess { model | correct = record :: model.correct }
+                nextModel { model | correct = record :: model.correct } model.records
             else
                 ( model, Cmd.none )
-
-        NewGuess ->
-            nextModel model model.records
 
 
 generateSeed : Cmd Msg
