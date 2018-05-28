@@ -18,6 +18,7 @@ type alias Model =
     , current : Record
     , guesses : List Record
     , correct : List Record
+    , wrong : List Record
     , endpoint : String
     , seed : Random.Seed
     }
@@ -31,6 +32,7 @@ init =
             , current = Api.empty
             , guesses = []
             , correct = []
+            , wrong = []
             , endpoint = "people"
             , seed = Random.initialSeed 1
             }
@@ -53,7 +55,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RecordsRecieved (Ok records) ->
-            nextModel model records
+            nextGuess model records
 
         RecordsRecieved (Err err) ->
             Debug.crash "Error:" err
@@ -66,9 +68,14 @@ update msg model =
 
         Guess record ->
             if record == model.current then
-                nextModel { model | correct = record :: model.correct } model.records
+                nextGuess { model | correct = record :: model.correct } model.records
             else
-                ( model, Cmd.none )
+                nextGuess
+                    { model
+                        | wrong = record :: model.wrong
+                        , records = record :: model.records
+                    }
+                    model.records
 
 
 generateSeed : Cmd Msg
@@ -81,8 +88,8 @@ shuffle seed records =
     Random.step (Random.List.shuffle records) seed
 
 
-nextModel : Model -> List Record -> ( Model, Cmd Msg )
-nextModel model records =
+nextGuess : Model -> List Record -> ( Model, Cmd Msg )
+nextGuess model records =
     let
         ( shuffled, newSeed ) =
             shuffle model.seed records
@@ -111,7 +118,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model.endpoint
-        , viewStatusBar model.correct
+        , viewStatusBar model.correct model.wrong
         , viewGuess model.current model.guesses
         ]
 
@@ -133,9 +140,13 @@ viewNavBarItem activeEndpoint endpoint =
         [ a [ (onClick <| FetchRecords endpoint), (href "#") ] [ text endpoint ] ]
 
 
-viewStatusBar : List Record -> Html Msg
-viewStatusBar records =
-    div [ class "container" ] [ text ("Correct: " ++ toString ((List.length records))) ]
+viewStatusBar : List Record -> List Record -> Html Msg
+viewStatusBar corrects wrongs =
+    div [ class "container" ]
+        [ text ("Correct: " ++ toString ((List.length corrects)))
+        , text (" Wrong: " ++ toString ((List.length wrongs)))
+        , text (" turns: " ++ toString ((List.length corrects + List.length wrongs)))
+        ]
 
 
 viewGuess : Record -> List Record -> Html Msg
