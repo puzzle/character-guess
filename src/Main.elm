@@ -152,8 +152,8 @@ viewStatusBar corrects wrongs =
 viewGuess : Record -> List Record -> Html Msg
 viewGuess current guesses =
     div []
-        [ div [ class "container" ] [ viewImage current ]
-        , div [ class "container" ] (viewGuesses guesses)
+        [ div [ class "container grid-lg" ] [ viewImage current ]
+        , div [ class "container grid-lg" ] (viewGuesses guesses)
         ]
 
 
@@ -172,7 +172,7 @@ viewImage record =
 
 viewButton : Record -> Html Msg
 viewButton record =
-    button [ onClick (Guess record), class "btn column col-3" ] [ text record.name ]
+    button [ onClick (Guess record), class "btn column col-3 col-sm-12" ] [ text record.name ]
 
 
 
