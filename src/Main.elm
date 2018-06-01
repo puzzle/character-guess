@@ -5,6 +5,7 @@ import Html.Attributes exposing (src, class, href, classList)
 import Html.Events exposing (onClick)
 import Api exposing (Record, getRecords)
 import Http
+import List.Extra
 import Random
 import Random.Int
 import Random.List
@@ -68,7 +69,11 @@ update msg model =
 
         Guess record ->
             if record == model.current then
-                nextGuess { model | correct = record :: model.correct } model.records
+                let
+                    newRecords =
+                        List.Extra.remove record model.records
+                in
+                    nextGuess { model | correct = record :: model.correct, records = newRecords } newRecords
             else
                 nextGuess
                     { model
@@ -118,7 +123,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model.endpoint
-        , viewStatusBar model.correct model.wrong
+        , viewStatusBar model.records model.correct model.wrong
         , viewGuess model.current model.guesses
         ]
 
@@ -140,12 +145,13 @@ viewNavBarItem activeEndpoint endpoint =
         [ a [ (onClick <| FetchRecords endpoint), (href "#") ] [ text endpoint ] ]
 
 
-viewStatusBar : List Record -> List Record -> Html Msg
-viewStatusBar corrects wrongs =
+viewStatusBar : List Record -> List Record -> List Record -> Html Msg
+viewStatusBar all corrects wrongs =
     div [ class "container" ]
         [ text ("Correct: " ++ toString ((List.length corrects)))
         , text (" Wrong: " ++ toString ((List.length wrongs)))
         , text (" turns: " ++ toString ((List.length corrects + List.length wrongs)))
+        , text (" remaining: " ++ toString ((List.length all)))
         ]
 
 
