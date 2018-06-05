@@ -9,19 +9,23 @@ import List.Extra
 import Random
 import Random.Int
 import Random.List
+import Delay
+import Time
+import Debug
 
 
 ---- MODEL ----
 
 
 type alias Model =
-    { records : List Record
+    { remaining : List Record
     , current : Record
     , guesses : List Record
     , correct : List Record
     , wrong : List Record
     , endpoint : String
     , seed : Random.Seed
+    , guess : Maybe Record
     }
 
 
@@ -29,13 +33,14 @@ init : ( Model, Cmd Msg )
 init =
     let
         model =
-            { records = []
+            { remaining = []
             , current = Api.empty
             , guesses = []
             , correct = []
             , wrong = []
             , endpoint = "people"
             , seed = Random.initialSeed 1
+            , guess = Nothing
             }
     in
         ( model, Cmd.batch [ loadRecords model.endpoint, generateSeed ] )
@@ -50,6 +55,7 @@ type Msg
     | FetchRecords String
     | NewSeed Int
     | Guess Record
+    | Next Record Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -68,19 +74,27 @@ update msg model =
             ( { model | seed = Random.initialSeed newSeed }, Cmd.none )
 
         Guess record ->
-            if record == model.current then
+            let
+                correct =
+                    record == model.current
+
+                delay =
+                    if correct then
+                        300
+                    else
+                        1000
+            in
+                ( { model | guess = Just record }, Delay.after delay Time.millisecond (Next record correct) )
+
+        Next record correctGuessed ->
+            if correctGuessed == True then
                 let
-                    newRecords =
-                        List.Extra.remove record model.records
+                    remaining =
+                        List.Extra.remove record model.remaining
                 in
-                    nextGuess { model | correct = record :: model.correct, records = newRecords } newRecords
+                    nextGuess { model | correct = record :: model.correct, remaining = remaining, guess = Nothing } remaining
             else
-                nextGuess
-                    { model
-                        | wrong = record :: model.wrong
-                        , records = record :: model.records
-                    }
-                    model.records
+                nextGuess { model | wrong = record :: model.wrong, guess = Nothing } model.remaining
 
 
 generateSeed : Cmd Msg
@@ -106,7 +120,7 @@ nextGuess model records =
             shuffled |> List.take 3 |> shuffle newSeed
     in
         ( { model
-            | records = shuffled
+            | remaining = shuffled
             , seed = nextSeed
             , guesses = guesses
             , current = current
@@ -123,8 +137,8 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model.endpoint
-        , viewStatusBar model.records model.correct model.wrong
-        , viewGuess model.current model.guesses
+        , viewStatusBar model.remaining model.correct model.wrong
+        , viewGuess model
         ]
 
 
@@ -155,18 +169,18 @@ viewStatusBar all corrects wrongs =
         ]
 
 
-viewGuess : Record -> List Record -> Html Msg
-viewGuess current guesses =
+viewGuess : Model -> Html Msg
+viewGuess model =
     div []
-        [ div [ class "container grid-lg" ] [ viewImage current ]
-        , div [ class "container grid-lg" ] (viewGuesses guesses)
+        [ div [ class "container grid-lg" ] [ viewImage model.current ]
+        , div [ class "container grid-lg" ] (viewGuesses model)
         ]
 
 
-viewGuesses : List Record -> List (Html Msg)
-viewGuesses records =
-    records
-        |> List.map viewButton
+viewGuesses : Model -> List (Html Msg)
+viewGuesses model =
+    model.guesses
+        |> List.map (viewButton model.guess model.current)
 
 
 viewImage : Record -> Html Msg
@@ -176,9 +190,25 @@ viewImage record =
         ]
 
 
-viewButton : Record -> Html Msg
-viewButton record =
-    button [ onClick (Guess record), class "btn column col-3 col-sm-12" ] [ text record.name ]
+viewButton : Maybe Record -> Record -> Record -> Html Msg
+viewButton maybeGuess current record =
+    let
+        btnClass =
+            case maybeGuess of
+                Nothing ->
+                    ""
+
+                Just guess ->
+                    if current == record && guess == current then
+                        "btn-success"
+                    else if guess == record then
+                        "btn-error"
+                    else if current == record then
+                        "btn-success"
+                    else
+                        ""
+    in
+        button [ onClick (Guess record), class ("btn column col-3 col-sm-12 " ++ btnClass) ] [ text record.name ]
 
 
 
