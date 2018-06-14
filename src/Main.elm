@@ -55,19 +55,15 @@ type Msg
     | FetchRecords String
     | MakeGuess Record
     | NewSeed Int
-    | Next
+    | MarkGuess Record
 
 
-updateModel : Record -> Model -> ( Model, Float )
-updateModel record model =
-    let
-        correct =
-            List.head model.list == Just record
-    in
-        if correct then
-            ( { model | list = (List.Extra.remove record model.list), guess = Correct }, 500 )
-        else
-            ( { model | guess = Wrong }, 1000 )
+markGuess : Record -> Model -> ( Model, Float )
+markGuess record model =
+    if firstRecord model == [ record ] then
+        ( { model | guess = Correct }, 500 )
+    else
+        ( { model | guess = Wrong }, 1000 )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -76,12 +72,21 @@ update msg model =
         MakeGuess record ->
             let
                 ( newModel, timeout ) =
-                    updateModel record model
+                    markGuess record model
             in
-                ( newModel, Delay.after timeout Time.millisecond Next )
+                ( newModel, Delay.after timeout Time.millisecond (MarkGuess record) )
 
-        Next ->
-            ( { model | guess = None }, Cmd.none )
+        MarkGuess record ->
+            let
+                newList =
+                    case model.guess of
+                        Correct ->
+                            List.Extra.remove record model.list
+
+                        _ ->
+                            model.list
+            in
+                ( { model | guess = None, list = newList }, Cmd.none )
 
         RecordsRecieved (Ok list) ->
             let
@@ -156,11 +161,32 @@ viewStatusBar list =
         ]
 
 
+firstRecord : Model -> List Record
+firstRecord model =
+    List.take 1 model.list
+
+
+buttonClass : Model -> Record -> String
+buttonClass model current =
+    if firstRecord model == [ current ] then
+        case model.guess of
+            None ->
+                ""
+
+            Correct ->
+                "btn-success"
+
+            Wrong ->
+                "btn-error"
+    else
+        ""
+
+
 viewGuess : Model -> Html Msg
 viewGuess model =
     div []
-        [ div [ class "container grid-lg" ] (List.map viewImage (List.take 1 model.list))
-        , div [ class "container grid-lg" ] (List.map (viewButton model.guess) model.candidates)
+        [ div [ class "container grid-lg" ] (List.map viewImage <| firstRecord model)
+        , div [ class "container grid-lg" ] (List.map (viewButton model) model.candidates)
         ]
 
 
@@ -171,25 +197,13 @@ viewImage record =
         ]
 
 
-viewButton : Guess -> Record -> Html Msg
-viewButton guess record =
-    let
-        buttonClass =
-            case guess of
-                None ->
-                    ""
-
-                Correct ->
-                    "btn-success"
-
-                Wrong ->
-                    "btn-error"
-    in
-        button
-            [ onClick (MakeGuess record)
-            , class ("btn column col-3 col-sm-12 " ++ buttonClass)
-            ]
-            [ text record.name ]
+viewButton : Model -> Record -> Html Msg
+viewButton model record =
+    button
+        [ onClick (MakeGuess record)
+        , class ("btn column col-3 col-sm-12 " ++ buttonClass model record)
+        ]
+        [ text record.name ]
 
 
 
