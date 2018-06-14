@@ -46,6 +46,27 @@ init =
         ( model, Cmd.batch [ loadRecords model.endpoint, generateSeed ] )
 
 
+firstRecord : Model -> List Record
+firstRecord model =
+    List.take 1 model.list
+
+
+buttonClass : Model -> Record -> String
+buttonClass model current =
+    if firstRecord model == [ current ] then
+        case model.guess of
+            None ->
+                ""
+
+            Correct ->
+                "btn-success"
+
+            Wrong ->
+                "btn-error"
+    else
+        ""
+
+
 
 ---- UPDATE ----
 
@@ -56,14 +77,6 @@ type Msg
     | MakeGuess Record
     | NewSeed Int
     | MarkGuess
-
-
-markGuess : Record -> Model -> ( Model, Float )
-markGuess record model =
-    if firstRecord model == [ record ] then
-        ( { model | guess = Correct }, 500 )
-    else
-        ( { model | guess = Wrong }, 1000 )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,6 +117,14 @@ generateSeed =
 shuffle : Random.Seed -> List Record -> ( List Record, Random.Seed )
 shuffle seed list =
     Random.step (Random.List.shuffle list) seed
+
+
+markGuess : Record -> Model -> ( Model, Float )
+markGuess record model =
+    if firstRecord model == [ record ] then
+        ( { model | guess = Correct }, 500 )
+    else
+        ( { model | guess = Wrong }, 1000 )
 
 
 nextGuess : Model -> ( Model, Cmd Msg )
@@ -177,27 +198,6 @@ viewStatusBar list =
     div [ class "container" ]
         [ text ("Remainig: " ++ toString ((List.length list)))
         ]
-
-
-firstRecord : Model -> List Record
-firstRecord model =
-    List.take 1 model.list
-
-
-buttonClass : Model -> Record -> String
-buttonClass model current =
-    if firstRecord model == [ current ] then
-        case model.guess of
-            None ->
-                ""
-
-            Correct ->
-                "btn-success"
-
-            Wrong ->
-                "btn-error"
-    else
-        ""
 
 
 viewGuess : Model -> Html Msg
