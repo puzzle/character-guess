@@ -55,7 +55,7 @@ type Msg
     | FetchRecords String
     | MakeGuess Record
     | NewSeed Int
-    | MarkGuess Record
+    | MarkGuess
 
 
 markGuess : Record -> Model -> ( Model, Float )
@@ -74,19 +74,10 @@ update msg model =
                 ( newModel, timeout ) =
                     markGuess record model
             in
-                ( newModel, Delay.after timeout Time.millisecond (MarkGuess record) )
+                ( newModel, Delay.after timeout Time.millisecond MarkGuess )
 
-        MarkGuess record ->
-            let
-                newList =
-                    case model.guess of
-                        Correct ->
-                            List.Extra.remove record model.list
-
-                        _ ->
-                            model.list
-            in
-                ( { model | guess = None, list = newList }, Cmd.none )
+        MarkGuess ->
+            nextGuess model
 
         RecordsRecieved (Ok list) ->
             let
@@ -118,10 +109,24 @@ shuffle seed list =
 nextGuess : Model -> ( Model, Cmd Msg )
 nextGuess model =
     let
-        ( list, nextSeed ) =
-            model.list |> List.take 3 |> shuffle model.seed
+        newList =
+            case model.guess of
+                Correct ->
+                    if List.length model.list > 2 then
+                        List.Extra.removeAt 0 model.list
+                    else
+                        []
+
+                _ ->
+                    model.list
+
+        ( first, rest ) =
+            List.Extra.splitAt 1 newList
+
+        ( candidates, nextSeed ) =
+            rest |> List.take 2 |> List.append first |> shuffle model.seed
     in
-        ( { model | candidates = list, seed = nextSeed }, Cmd.none )
+        ( { model | list = newList, candidates = candidates, seed = nextSeed, guess = None }, Cmd.none )
 
 
 
@@ -130,10 +135,23 @@ nextGuess model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ viewNavBar model.endpoint
-        , viewStatusBar model.list
-        , viewGuess model
+    let
+        children =
+            if not (List.isEmpty model.list) then
+                [ viewRestart model.endpoint ]
+            else
+                [ viewStatusBar model.list
+                , viewGuess model
+                ]
+    in
+        div [] (viewNavBar model.endpoint :: children)
+
+
+viewRestart : String -> Html Msg
+viewRestart endpoint =
+    h1 [ class "center-screen" ]
+        [ button [ class "btn btn-lg btn-primary", (onClick <| FetchRecords endpoint), href "#" ]
+            [ text "Restart" ]
         ]
 
 
@@ -151,7 +169,7 @@ viewNavBarItem activeEndpoint endpoint =
             [ ( "active", activeEndpoint == endpoint )
             ]
         ]
-        [ a [ (onClick <| FetchRecords endpoint), (href "#") ] [ text endpoint ] ]
+        [ a [ (onClick <| FetchRecords endpoint), href "#" ] [ text endpoint ] ]
 
 
 viewStatusBar : List Record -> Html Msg
