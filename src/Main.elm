@@ -90,7 +90,12 @@ update msg model =
                 ( newModel, Delay.after timeout Time.millisecond MarkGuess )
 
         MarkGuess ->
-            nextGuess model
+            case model.guess of
+                Correct ->
+                    nextGuess model
+
+                _ ->
+                    ( { model | guess = None }, Cmd.none )
 
         RecordsRecieved (Ok list) ->
             let
@@ -158,7 +163,7 @@ view : Model -> Html Msg
 view model =
     let
         children =
-            if not (List.isEmpty model.list) then
+            if (List.isEmpty model.list) then
                 [ viewRestart model.endpoint ]
             else
                 [ viewStatusBar model.list
