@@ -1,22 +1,49 @@
 module Tests exposing (..)
 
 import Test exposing (..)
+import Main exposing (nextGuess, Guess, Model)
+import Api exposing (Record)
 import Expect
+import Random
 
 
--- Check out http://package.elm-lang.org/packages/elm-community/elm-test/latest to learn more about testing in Elm!
+create : String -> Record
+create name =
+    { name = name, image = name ++ ".png" }
+
+
+defaultRecords =
+    [ create "Luke"
+    , create "Han"
+    , create "Leia"
+    , create "C3PO"
+    , create "R2D2"
+    ]
+
+
+generateModel : Model
+generateModel =
+    { list = defaultRecords
+    , candidates = []
+    , guess = Main.None
+    , endpoint = ""
+    , seed = Random.initialSeed 1
+    }
 
 
 all : Test
 all =
-    describe "A Test Suite"
-        [ test "Addition" <|
+    describe "nextGuess"
+        [ test "picks 3 random candidates from list" <|
             \_ ->
-                Expect.equal 10 (3 + 7)
-        , test "String.left" <|
+                nextGuess generateModel
+                    |> Tuple.first
+                    |> .candidates
+                    |> List.map .name
+                    |> Expect.equal [ "Han", "Luke", "Leia" ]
+        , test "generates a Cmd.none message" <|
             \_ ->
-                Expect.equal "a" (String.left 1 "abcdefg")
-        , test "This test should fail" <|
-            \_ ->
-                Expect.fail "failed as expected!"
+                nextGuess generateModel
+                    |> Tuple.second
+                    |> Expect.equal Cmd.none
         ]
