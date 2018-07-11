@@ -59,7 +59,7 @@ Die wichtigsten Eigenschaften der Sprache sind:
 Diese Eigenschaften erlauben es dem Compiler, der übrigens in Haskell
 geschrieben ist, die formale Korrektheit des Codes wesentlich tiefgreifender zu
 prüfen, als dies zum Beispiel der Typescript oder auch der Java Compiler kann.
-Insbesondere garantiert der Compiler, dass das ausgelieferte Programm keien
+Insbesondere garantiert der Compiler, dass das ausgelieferte Programm keine
 Runtime Exceptions wirft...
 
 ## Wirklich? No runtime Exceptions…
@@ -67,14 +67,15 @@ Runtime Exceptions wirft...
 Frontend-Entwicklern begegnen ihnen täglich und auch bekannte Websites sind
 nicht davor gefeit: ![](assets/False_is_not_defined.png)
 
-Elm ist streng statisch typisiert - und der Compiler kann jederzeit die Types
+Elm ist streng statisch typisiert - und der Compiler kann jederzeit die Typen
 ableiten. Aber warum ist das wichtig und was heisst das eigentlich?
 
 Ein "strenges statisches" Type-System garantiert uns, dass ganze Kategorien von
 Fehlern nicht auftreten können - Ausdrücke die keinen Sinn machen. Zum Beispiel,
 wenn eine Zahl als Funktion verwendet werden soll oder wenn wir einer Funktion,
 die Zahlen erwartet, einen String füttern. Der Elm Compiler weigert sich,
-solchen Code zu compilieren und weist uns auf den Fehler hin:
+solchen Code zu compilieren und weist uns, freundlich aber bestimmt, auf unseren 
+Fehler hin:
 
 ``` -- TYPE MISMATCH ---------------------------------------------
 repl-temp-000.elm
@@ -89,19 +90,23 @@ But it is:
 
     String ```
 
-Daneben gibt es in Elm kein null oder undefined – dafür gibt es den Typ „Maybe“,
-ähnlich den Optionals in Java8. Der Compiler erkennt, dass der Wert einer
-Variable allenfalls nicht definiert sein kann und gibt eine entsprechende
-Fehlermeldung aus - z.B. wenn wir das erste Element einer Liste mit 1 addieren
-wollen:
+Diese ['menschenfreundliche Fehlermeldungen'](http://elm-lang.org/blog/compiler-errors-for-humans) 
+geben sind extrem hilfreich. Sie beschreiben genau welches Problem der Compiler
+erkannt hat. Bei komplexeren Problemen werden zudem noch Tips, Beispiele oder 
+Links zur Dokumentation inkludiert.
+
+Ein weiteres Merkmal des Type-Systems ist die Absenz von Null Werten. Dieser 
+[Billion-Dollar Mistake](https://www.lucidchart.com/techblog/2015/08/31/the-worst-mistake-of-computer-science/)
+wird duch einen `Maybe` Typ ersetzt. Der Compiler erkennt, dass der Wert
+potentiell nicht definiert ist und zwingt uns diesen Fall zu behandeln.
 
 ```
-> add 1 (List.head [1, 2, 4])
+> add 1 (List.head numbers)
 -- TYPE MISMATCH --------------------------------------------- repl-temp-000.elm
 
 The 2nd argument to function `add` is causing a mismatch.
 
-4|   add 1 (List.head [1, 2, 4]) ^^^^^^^^^^^^^^^^^^^ Function `add` is expecting
+4|   add 1 (List.head numbers) ^^^^^^^^^^^^^^^^^^^ Function `add` is expecting
 the 2nd argument to be:
 
     number
@@ -115,26 +120,14 @@ argument is acceptable when I check it, I assume it is "correct" in subsequent
 checks. So the problem may actually be in how previous arguments interact with
 the 2nd. ```
 
-Es stellt sich nämlich die Frage, was `List.head` für eine leere Liste zurück
-geben soll... ev. null oder eben ein spezieller Typ? Zudem sind die
-Fehlermeldungen des Compilers extrem hilfreich: Die genaue Codezeile wird
-angegeben, auch die betroffene Expression in dieser Zeile, mit einer
-ausführlichen Beschreibung des Fehlers, oft noch mit Hinweisen oder sogar Links
-auf die Dokumentation.
-
 Tatsächlich haben wir während der Entwicklung der Applikation nie eine Runtime
-Exception, keine einzige Nullpouinterexception in der laufenden Applikation
-erlebt – dies ist auch die Erfahrung in grossen Projekten
+Exception erlebt – dies ist auch die Erfahrung in grossen Projekten
 (https://www.infoq.com/news/2017/05/elm-zero-runtime-exception)
 
 ## Ist das denn tatsächlich „reizend“ (delightful)?
 
-Der Compiler schaut uns also ganz genau auf die Finger beim Code, exakt so, wie
-das auch ein Partner beim Pair Programming tun sollte - nur noch wesentlich
-genauer und unermüdlich. Wir müssen jeden möglichen (Fehler-) Fall explizit
-behandeln, auch wenn für uns selbstverständlich ist, dass die Liste Werte
-enthält – solange der Compiler nicht zufrieden ist, müssen wir uns darum kümmern
-- jetzt und nicht erst später!
+Der Compiler schaut uns also ganz genau auf die Finger. Jeder Fehlerfall muss
+behandelt werden, und zwar jetzt und nicht erst später!
 
 Auf den ersten Blick mag dies vielleicht wenig „delightful“ erscheinen, aber in
 der Praxis hat sich gezeigt, dass diese Strenge des Compilers zwei wichtige
@@ -142,7 +135,7 @@ Vorteile bietet:
 
 1.  Jede Fehlerbehandlung liefert einen Denkanstoss. Wie könnte der
 Laufzeitfehler vermieden werden? Habe ich die richtigen Typen in meinem Model?
-Fehlt dort etwas oder ist gar etwas zu viel? Dadurch erhält man ein stablileres
+Fehlt dort etwas oder ist gar etwas zu viel? Dadurch erhält man ein stabileres
 und verständlicheres Model woraus dann automatisch auch stabilerer und
 einfacherer Code entsteht.
 
@@ -157,9 +150,8 @@ die Business-Logik tut, kann der Compiler natürlich nicht garantieren.
 
 Dieser Punkt hat uns einiges an Kopfzerbrechen bereitet - was ist eigentlich
 eine zuverlässige Webapplikation? Reicht es, wenn sie macht, was sie soll - und
-zwar ohne Fehler (sie Runtime Exceptions)? Wieso unterscheidet die Punchline
-("reliable webapps ... without runtime exceptions") explizit "zuverlässig" und
-"ohne Fehler"?
+zwar ohne Fehler? Wieso unterscheidet die Punchline ("reliable webapps ...
+without runtime exceptions") explizit zwischen "zuverlässig" und "ohne Fehler"?
 
 Wir denken, dass "Zuverlässigkeit" den gesamten Lebenszyklus der Wepapp
 betrifft, also Plan - Build - Run! (pun intended!). Bei Puzzle setzen wir
@@ -170,14 +162,14 @@ so wichtig.
 
 Das bedeutet für ein solches Projekt:
 
-- Die Teamzusammensetzung ändert sich stetig - neue Members müssen eingarbeitet
+- Die Teamzusammensetzung wird sich ändern - neue Members müssen eingarbeitet
   werden und sich v.a. auch in der Architektur und dem Code Style der
 Applikation zurecht finden.
 - Die eingesetzten Frameworks und Third Party Libraries entwickeln sich ständig
-  weiter und sollten stetig nachgezogen werden.
+  weiter und sollten ohne gross Aufwände nachgezogen werden.
 
-Unserer Erfahrung nach sind beides Pain Points für Webapplikationen. Sowohl die
-Frameworks selbst, aber auch die Build Pipelines und generell das gesamte
+Unserer Erfahrung nach sind dies zwei Pain Points bei Javascript Applikationen.
+Sowohl die Frameworks selbst, aber auch die Build Pipelines und das gesamte
 Ökosystem sind einem rasanten Wandel unterzogen. Die Architekturen unterscheiden
 sich von einem Projekt zum nächsten, auch bei gleichbleibenden Teams. Es wird
 heftig darüber diskutiert, ob und welches State-Management System (redux, ngrx,
@@ -192,27 +184,28 @@ Elm bietet hier Lösungen:
 
 - Der Paket Manager von Elm erzwingt echtes Semantic Versioning: Aufgrund der
   Typen und Signaturen der Funktionen in einem Modul kann die exakte neue
-Versionsnummer abgeleitet werden.
-https://github.com/elm-lang/elm-package#version-rules Dadurch ist
-ausgeschlossen, dass Minor oder Patch Upgrades von Packages sogenannte "Breaking
-Changes" enthalten - Upgrades können also bedenkenlos eingespielt werden.
+  [Versionsnummer](https://github.com/elm-lang/elm-package#version-rules) 
+  abgeleitet werden.
+  Dadurch ist ausgeschlossen, dass Minor oder Patch Upgrades von
+  Packages sogenannte "Breaking Changes" enthalten - Upgrades können also
+  bedenkenlos eingespielt werden.
 
 - Es gibt nur eine Architektur für Elm-Applikationen - und diese ist direkt in
   die Sprache integriert, also nicht als Package zu installieren - Die
-Elm-Architektur war u.a. inspiration für Redux: _"Redux evolves the ideas of
-Flux, but avoids its complexity by taking cues from Elm. Even if you haven't
-used Flux or Elm, Redux only takes a few minutes to get started with."_ Quelle:
-https://redux.js.org/#influences Auf die Details zur
-[Elm-Architektur](https://guide.elm-lang.org/architecture/) können wir hier
-nicht eingehen, das würde den Rahmen dieses Posts sprengen, aber die Konsequenz
-daraus ist: Die Elm-Architektu ermöglicht einen leichten Einstieg sowohl für
-Anfänger als auch für Fortgeschrittene, die eine bestehende Code-Basis
-übernehmen wollen und sich nicht zuerst mit der spezifischen Architektur des
-Projekts befassen müssen. Die Elm Architektur macht es triviel sich im Code
-zurecht zufinden. Diese Architektur wird auch immer angewendet unabhängig von
-der grösse der Applikation – die Frage ob man einen State Manager (bzw. welchen)
-verwenden will stellt sich in Elm nicht, wie in anderen Frameworks
-(https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367).
+  Elm-Architektur war u.a. inspiration für Redux: _"Redux evolves the ideas of
+  Flux, but avoids its complexity by taking cues from Elm. Even if you haven't
+  used Flux or Elm, Redux only takes a few minutes to get started with."_ Quelle:
+  https://redux.js.org/#influences
+
+  Auf die Details zur [Elm-Architektur](https://guide.elm-lang.org/architecture/)
+  einzugehen würde den Rahmen dieses Posts sprengen, aber einen wichtige Konsequenz
+  daraus ist: Die Elm-Architektur ermöglicht einen leichten Einstieg für
+  Neueinsteiger oder bei Übernahme bestehender Projekte da der Programmfluss
+  und Programm Zustand festgelegt sind. 
+  Diese Architektur wird auch immer angewendet unabhängig von der grösse der
+  Applikation – die Frage ob man einen State Manager (bzw. welchen) verwenden
+  will stellt sich in Elm nicht, wie in anderen Frameworks
+  (https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367).
 
 - Die Community hat sich auf einen eigenen Code-Style geeinigt:
   [elm-format](https://github.com/avh4/elm-format/blob/master/README.md) - ohne
@@ -220,7 +213,7 @@ Konfigurationsmöglichkeit, mit einfacher Integration für die gängigen Editore
 kommt das Tool mit den abentuerlichsten Formatierungen zurecht und rückt den
 Code - sofern er syntaktisch korrekt ist - wieder ins rechte Licht. Damit erhält
 man übrigens schon einen ersten Hinweis darauf, ob das, was man da geschrieben
-hat auch tatsächlich Sinn macht... besonders für Anfänger ist das sehr Hilfreich
+hat auch tatsächlich Sinn macht... besonders für Anfänger ist das sehr hilfreich
 und für den fortgeschrittenen Entwickler macht es einfach Spass, dass man sich
 nicht um die Formatierung kümmern muss.
 
@@ -234,8 +227,8 @@ Elm-Applikation in Produktion](https://www.youtube.com/watch?v=uQjivmLan0E).
 ## Performance
 
 Für den Endbenutzer entscheidend ist schlussendlich die Performance. Obwohl
-diedie Applikation fehlerfrei läuft macht es keinen Spass, wenn die Performance
-schlecht ist. In dieser Hinsicht muss man sich bei Elm keine Sorgen machen.
+die Applikation fehlerfrei läuft macht es keinen Spass, muss die Performance
+stimmen. In dieser Hinsicht muss man sich bei Elm keine Sorgen machen.
 Obwohl schon etwas älter zeigt der Vergleich mit react, angular und ember, dass
 die Performance von Elm-Applikationen (auch ohne Optimierungen) durchschnittlich
 besser war als mit den damals aktuellen Versionen der vergleichbaren Javascript
