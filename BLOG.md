@@ -74,28 +74,36 @@ Ein "strenges statisches" Type-System garantiert uns, dass ganze Kategorien von
 Fehlern nicht auftreten können - Ausdrücke die keinen Sinn machen. Zum Beispiel,
 wenn eine Zahl als Funktion verwendet werden soll oder wenn wir einer Funktion,
 die Zahlen erwartet, einen String füttern. Der Elm Compiler weigert sich,
-solchen Code zu compilieren und weist uns, freundlich aber bestimmt, auf unseren 
+solchen Code zu compilieren und weist uns, freundlich aber bestimmt, auf unseren
 Fehler hin:
 
-``` -- TYPE MISMATCH ---------------------------------------------
-repl-temp-000.elm
+```
+-- TYPE MISMATCH --------------------------------------------- repl-temp-000.elm
 
-The 1st argument to function `add` is causing a mismatch.
+The 2nd argument to function `add` is causing a mismatch.
 
-4|   add "test" 1 ^^^^^^ Function `add` is expecting the 1st argument to be:
+4|   add 1 (List.head numbers)
+            ^^^^^^^^^^^^^^^^^
+Function `add` is expecting the 2nd argument to be:
 
     number
 
 But it is:
 
-    String ```
+    Maybe number
 
-Diese ['menschenfreundliche Fehlermeldungen'](http://elm-lang.org/blog/compiler-errors-for-humans) 
+Hint: I always figure out the type of arguments from left to right. If an
+argument is acceptable when I check it, I assume it is "correct" in subsequent
+checks. So the problem may actually be in how previous arguments interact with
+the 2nd.
+```
+
+Diese ['menschenfreundliche Fehlermeldungen'](http://elm-lang.org/blog/compiler-errors-for-humans)
 geben sind extrem hilfreich. Sie beschreiben genau welches Problem der Compiler
-erkannt hat. Bei komplexeren Problemen werden zudem noch Tips, Beispiele oder 
+erkannt hat. Bei komplexeren Problemen werden zudem noch Tips, Beispiele oder
 Links zur Dokumentation inkludiert.
 
-Ein weiteres Merkmal des Type-Systems ist die Absenz von Null Werten. Dieser 
+Ein weiteres Merkmal des Type-Systems ist die Absenz von Null Werten. Dieser
 [Billion-Dollar Mistake](https://www.lucidchart.com/techblog/2015/08/31/the-worst-mistake-of-computer-science/)
 wird duch einen `Maybe` Typ ersetzt. Der Compiler erkennt, dass der Wert
 potentiell nicht definiert ist und zwingt uns diesen Fall zu behandeln.
@@ -118,7 +126,8 @@ But it is:
 Hint: I always figure out the type of arguments from left to right. If an
 argument is acceptable when I check it, I assume it is "correct" in subsequent
 checks. So the problem may actually be in how previous arguments interact with
-the 2nd. ```
+the 2nd.
+```
 
 Tatsächlich haben wir während der Entwicklung der Applikation nie eine Runtime
 Exception erlebt – dies ist auch die Erfahrung in grossen Projekten
@@ -134,17 +143,17 @@ der Praxis hat sich gezeigt, dass diese Strenge des Compilers zwei wichtige
 Vorteile bietet:
 
 1.  Jede Fehlerbehandlung liefert einen Denkanstoss. Wie könnte der
-Laufzeitfehler vermieden werden? Habe ich die richtigen Typen in meinem Model?
-Fehlt dort etwas oder ist gar etwas zu viel? Dadurch erhält man ein stabileres
-und verständlicheres Model woraus dann automatisch auch stabilerer und
-einfacherer Code entsteht.
+    Laufzeitfehler vermieden werden? Habe ich die richtigen Typen in meinem Model?
+    Fehlt dort etwas oder ist gar etwas zu viel? Dadurch erhält man ein stabileres
+    und verständlicheres Model woraus dann automatisch auch stabilerer und
+    einfacherer Code entsteht.
 
 2.  Bei jedem Refactoring bietet der Compiler seine Unterstützung an. Er liefert
-hilfreiche Fehlermeldungen und wird so zum Pair-Programming-Partner. Bei
-umfangreiche Refactorings steht er jederzeit bereit und führt uns Schritt für
-Schritt durch die notwendigen Anpassungen. Sobald der Code compiliert, kann man
-sicher sein, dass die Applikation wieder formal funktioniert - ob es dann auch
-die Business-Logik tut, kann der Compiler natürlich nicht garantieren.
+    hilfreiche Fehlermeldungen und wird so zum Pair-Programming-Partner. Bei
+    umfangreiche Refactorings steht er jederzeit bereit und führt uns Schritt für
+    Schritt durch die notwendigen Anpassungen. Sobald der Code compiliert, kann man
+    sicher sein, dass die Applikation wieder formal funktioniert - ob es dann auch
+    die Business-Logik tut, kann der Compiler natürlich nicht garantieren.
 
 ## Zuverlässige Webapplikationen...
 
@@ -164,7 +173,7 @@ Das bedeutet für ein solches Projekt:
 
 - Die Teamzusammensetzung wird sich ändern - neue Members müssen eingarbeitet
   werden und sich v.a. auch in der Architektur und dem Code Style der
-Applikation zurecht finden.
+  Applikation zurecht finden.
 - Die eingesetzten Frameworks und Third Party Libraries entwickeln sich ständig
   weiter und sollten ohne gross Aufwände nachgezogen werden.
 
@@ -184,7 +193,7 @@ Elm bietet hier Lösungen:
 
 - Der Paket Manager von Elm erzwingt echtes Semantic Versioning: Aufgrund der
   Typen und Signaturen der Funktionen in einem Modul kann die exakte neue
-  [Versionsnummer](https://github.com/elm-lang/elm-package#version-rules) 
+  [Versionsnummer](https://github.com/elm-lang/elm-package#version-rules)
   abgeleitet werden.
   Dadurch ist ausgeschlossen, dass Minor oder Patch Upgrades von
   Packages sogenannte "Breaking Changes" enthalten - Upgrades können also
@@ -201,7 +210,7 @@ Elm bietet hier Lösungen:
   einzugehen würde den Rahmen dieses Posts sprengen, aber einen wichtige Konsequenz
   daraus ist: Die Elm-Architektur ermöglicht einen leichten Einstieg für
   Neueinsteiger oder bei Übernahme bestehender Projekte da der Programmfluss
-  und Programm Zustand festgelegt sind. 
+  und Programm Zustand festgelegt sind.
   Diese Architektur wird auch immer angewendet unabhängig von der grösse der
   Applikation – die Frage ob man einen State Manager (bzw. welchen) verwenden
   will stellt sich in Elm nicht, wie in anderen Frameworks
@@ -209,20 +218,20 @@ Elm bietet hier Lösungen:
 
 - Die Community hat sich auf einen eigenen Code-Style geeinigt:
   [elm-format](https://github.com/avh4/elm-format/blob/master/README.md) - ohne
-Konfigurationsmöglichkeit, mit einfacher Integration für die gängigen Editoren,
-kommt das Tool mit den abentuerlichsten Formatierungen zurecht und rückt den
-Code - sofern er syntaktisch korrekt ist - wieder ins rechte Licht. Damit erhält
-man übrigens schon einen ersten Hinweis darauf, ob das, was man da geschrieben
-hat auch tatsächlich Sinn macht... besonders für Anfänger ist das sehr hilfreich
-und für den fortgeschrittenen Entwickler macht es einfach Spass, dass man sich
-nicht um die Formatierung kümmern muss.
+  Konfigurationsmöglichkeit, mit einfacher Integration für die gängigen Editoren,
+  kommt das Tool mit den abentuerlichsten Formatierungen zurecht und rückt den
+  Code - sofern er syntaktisch korrekt ist - wieder ins rechte Licht. Damit erhält
+  man übrigens schon einen ersten Hinweis darauf, ob das, was man da geschrieben
+  hat auch tatsächlich Sinn macht... besonders für Anfänger ist das sehr hilfreich
+  und für den fortgeschrittenen Entwickler macht es einfach Spass, dass man sich
+  nicht um die Formatierung kümmern muss.
 
 - Aus unserer Sicht der wichtigste Punkt: Seit dem letzten Elm-Release (0.18)
   sind jetzt dann bald zwei Jahre vergangen. Das tönt merkwürdig, aber das führt
-dazu, dass man eben nicht alle paar Monate den gesamten Tech-Stack nachziehen
-muss, obwohl die Neuerungen im Framework für die eigene Applikation gar nicht
-hilfreich sind - diese Erfahrung [teilen andere Teams mit relativ grossen
-Elm-Applikation in Produktion](https://www.youtube.com/watch?v=uQjivmLan0E).
+  dazu, dass man eben nicht alle paar Monate den gesamten Tech-Stack nachziehen
+  muss, obwohl die Neuerungen im Framework für die eigene Applikation gar nicht
+  hilfreich sind - diese Erfahrung [teilen andere Teams mit relativ grossen
+  Elm-Applikation in Produktion](https://www.youtube.com/watch?v=uQjivmLan0E).
 
 ## Performance
 
@@ -260,7 +269,7 @@ wieder. Wenn wir in Elm entwickeln, müssen wir nie Debuggen (das geht auch gar
 nicht) oder in verschachtelten Stacktraces in den Devtools des Browsers nach dem
 Fehler suchen, um dann präsentiert zu bekommen:
 
-``` undefined is not a function (main.js: 1) ```
+`undefined is not a function (main.js: 1)`
 
 Unsere persönliche Meinung ist klar: Die „Developer Happyness with elm“ (
 https://www.youtube.com/watch?v=kuOCx0QeQ5c&t) ist so gut, dass wir und weiter
