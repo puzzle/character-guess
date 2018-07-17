@@ -296,6 +296,8 @@ Für weitere Informationen empfehlen wir die folgenden Talks:
 
 * Gemeinsamkeiten und Unterschiede zu React - [Convergent Evolution](https://www.youtube.com/watch?v=jl1tGiUiTtI)
 
+* Weshalb sich mit Elm mehr Geld verdienen lässt - [Elm from a Business Perspective](https://www.youtube.com/watch?v=DvQI1KntMhk)
+
 Empfohlene Resourcen
 
 - Erste Eindrücke gewinnen: http://elm-lang.org/try
