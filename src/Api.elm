@@ -18,7 +18,7 @@ type alias Record =
 
 url : String
 url =
-    "http://swapi.glitch.me/"
+    "https://swapi.glitch.me/"
 
 
 empty : Record
