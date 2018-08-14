@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "start": "elm-app start",
+    "build": "elm-app build"
+
+  },
   "dependencies": {
     "spectre.css": "^0.5.1"
   },
