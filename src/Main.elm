@@ -216,7 +216,7 @@ viewGuess model =
 viewImage : Record -> Html Msg
 viewImage record =
     figure [ class "column" ]
-        [ img [ src record.image ] []
+        [ img [ src (Api.url ++ record.image) ] []
         ]
 
 

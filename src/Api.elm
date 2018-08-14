@@ -3,6 +3,7 @@ module Api
         ( Record
         , getRecords
         , empty
+        , url
         )
 
 import Http
@@ -15,6 +16,11 @@ type alias Record =
     }
 
 
+url : String
+url =
+    "http://swapi.glitch.me/"
+
+
 empty : Record
 empty =
     { name = "Tux"
@@ -24,7 +30,11 @@ empty =
 
 getRecords : String -> Http.Request (List Record)
 getRecords path =
-    Http.get ("/" ++ path ++ "/list.json") (decodeRecords path)
+    let
+        resource =
+            url ++ path
+    in
+        Http.get resource (decodeRecords path)
 
 
 decodeRecords : String -> Decode.Decoder (List Record)
@@ -36,7 +46,7 @@ decodeImage : String -> Decode.Decoder String
 decodeImage path =
     Decode.string
         |> Decode.andThen
-            (\image -> Decode.succeed (path ++ "/images/" ++ image))
+            (\image -> Decode.succeed (image))
 
 
 decodeRecord : String -> Decode.Decoder Record
