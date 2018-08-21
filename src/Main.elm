@@ -11,7 +11,6 @@ import Random.Int
 import Random.List
 import Delay
 import Time
-import Debug
 
 
 ---- MODEL ----
@@ -23,7 +22,14 @@ type alias Model =
     , guess : Guess
     , endpoint : String
     , seed : Random.Seed
+    , appState : AppState
     }
+
+
+type AppState
+    = Loading
+    | Loaded
+    | Failed Http.Error
 
 
 type Guess
@@ -41,6 +47,7 @@ init =
             , guess = None
             , endpoint = "people"
             , seed = Random.initialSeed 1
+            , appState = Loading
             }
     in
         ( model, Cmd.batch [ loadRecords model.endpoint, generateSeed ] )
@@ -100,12 +107,17 @@ update msg model =
         RecordsRecieved (Ok list) ->
             let
                 ( shuffled, nextSeed ) =
-                    shuffle model.seed (List.take 5 list)
+                    shuffle model.seed list
             in
-                nextGuess { model | list = shuffled }
+                nextGuess
+                    { model
+                        | list = List.take 5 shuffled
+                        , seed = nextSeed
+                        , appState = Loaded
+                    }
 
         RecordsRecieved (Err err) ->
-            Debug.crash "Error:" err
+            ( { model | appState = Failed err }, Cmd.none )
 
         FetchRecords endpoint ->
             ( { model | endpoint = endpoint }, loadRecords endpoint )
@@ -163,14 +175,43 @@ view : Model -> Html Msg
 view model =
     let
         children =
-            if (List.isEmpty model.list) then
-                [ viewRestart model.endpoint ]
-            else
-                [ viewStatusBar model.list
-                , viewGuess model
-                ]
+            case model.appState of
+                Loading ->
+                    [ viewLoading model ]
+
+                Loaded ->
+                    if (List.isEmpty model.list) then
+                        [ viewRestart model.endpoint ]
+                    else
+                        [ viewStatusBar model.list
+                        , viewGuess model
+                        ]
+
+                Failed err ->
+                    [ viewError model err ]
     in
         div [] (viewNavBar model.endpoint :: children)
+
+
+viewLoading : a -> Html msg
+viewLoading model =
+    div []
+        [ div [ class "loading loading-lg" ] []
+        , Html.h3 [] [ text "Loading" ]
+        ]
+
+
+viewError : Model -> Http.Error -> Html Msg
+viewError model error =
+    div [ class "center-screen" ]
+        [ h1 [] [ text "Network error. Check your internet connection!" ]
+        , button
+            [ class "btn btn-lg btn-primary"
+            , (onClick <| FetchRecords model.endpoint)
+            , href "#"
+            ]
+            [ text "Retry..." ]
+        ]
 
 
 viewRestart : String -> Html Msg
