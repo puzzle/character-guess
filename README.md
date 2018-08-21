@@ -1,6 +1,6 @@
 # Character Guess
 
-A simple character guessing game - writen in [elm](http://elm-lang.org).
+A simple character guessing game - written in [elm](http://elm-lang.org).
 
 ## Local setup
 
