@@ -38,8 +38,8 @@ StarWars-Figur erraten.
 
 ![](assets/elm-character-guess-screenshot.png)
 
-Die StarWars-Kenntnisse können hier <Link einfügen> unter Beweis gestellt
-werden. Der Code ist Open Source: <Link aufs Repo>. An dieser Stelle gehen wir
+Die StarWars-Kenntnisse können [hier](https://puzzle.github.io/character-guess/) unter Beweis gestellt
+werden. Der Code ist Open Source: https://github.com/puzzle/character-guess. An dieser Stelle gehen wir
 nicht en Détail auf den Code der Applikation ein, sondern möchten einige
 Haraustellungsmerkmale der Sprache sowie unsere Eindrücke schildern.
 
@@ -58,7 +58,7 @@ Die wichtigsten Eigenschaften der Sprache sind:
 
 Diese Eigenschaften erlauben es dem Compiler, der übrigens in Haskell
 geschrieben ist, die formale Korrektheit des Codes wesentlich tiefgreifender zu
-prüfen, als dies zum Beispiel der Typescript- oder auch der Javacompiler kann.
+prüfen, als dies zum Beispiel der Typescript- oder auch der Java Compiler kann.
 Insbesondere garantiert der Compiler, dass das ausgelieferte Programm keine
 Runtime Exceptions wirft...
 
@@ -68,8 +68,7 @@ Frontend-Entwicklern begegnen ihnen täglich und auch bekannte Websites sind
 nicht davor gefeit: ![](assets/False_is_not_defined.png)
 
 Elm ist streng statisch typisiert - und der Compiler kann jederzeit die Typen
-ableiten. Aber warum ist das wichtig, wieso hilft das gegen solche Fehler und
-was heisst das eigentlich?
+aller Ausdrücke ableiten. Aber warum ist das wichtig und was heisst das eigentlich?
 
 Ein "strenges statisches" Typen-System garantiert uns, dass ganze Kategorien von
 Fehlern nicht auftreten können - nämlich Ausdrücke die keinen Sinn machen. Zum Beispiel,
@@ -83,15 +82,15 @@ Fehler hin:
 
 The 2nd argument to function `add` is causing a mismatch.
 
-4|   add 1 (List.head numbers)
-            ^^^^^^^^^^^^^^^^^
+4|   add 1 "2"
+           ^^^
 Function `add` is expecting the 2nd argument to be:
 
     number
 
 But it is:
 
-    Maybe number
+    String
 
 Hint: I always figure out the type of arguments from left to right. If an
 argument is acceptable when I check it, I assume it is "correct" in subsequent
@@ -152,7 +151,7 @@ Vorteile bietet:
 2.  Bei jedem Refactoring bietet der Compiler seine Unterstützung an. Er liefert
     hilfreiche Fehlermeldungen und wird so zum Pair-Programming-Partner. Bei
     umfangreiche Refactorings steht er jederzeit bereit und führt uns Schritt für
-    Schritt durch die notwendigen Anpassungen. Sobald der Code compiliert, kann man
+    Schritt durch die notwendigen Anpassungen. Sobald der Code wieder compiliert, kann man
     sicher sein, dass die Applikation wieder formal funktioniert - ob es dann auch
     die Business-Logik tut, kann der Compiler natürlich nicht garantieren.
 
@@ -237,7 +236,7 @@ will stellt sich in Elm nicht, wie in anderen Frameworks
 
 ## Performance
 
-Für den Endbenutzer entscheidend ist schlussendlich die Performance. Obwohl
+Für den Endbenutzer entscheidend ist schliesslich die Performance. Obwohl
 die Applikation fehlerfrei läuft muss die Performance stimmen. In dieser Hinsicht
 muss man sich bei Elm keine Sorgen machen. Obwohl schon etwas älter zeigt der
 [Vergleich von 2016](http://elm-lang.org/blog/blazing-fast-html-round-two),
@@ -276,7 +275,7 @@ Fehler suchen, um dann präsentiert zu bekommen:
 `undefined is not a function (main.js: 1)`
 
 Oft kann man relativ lange Zeit, ja ganze Tage weiterentwickeln oder Refactorings machen, ohne
-dass man die Applikation im Browser nachgeladen werden muss: Wenn der Compiler sein Ok gibt, dann
+dass man die Applikation im Browser nachlädt: Wenn der Compiler sein Ok gibt, dann
 funkioniert es auch! Das ist unsere Erfahrung.
 
 Unsere persönliche Meinung ist klar: Die „Developer Happyness with elm“ (
