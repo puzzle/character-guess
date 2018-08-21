@@ -10,7 +10,7 @@
   "scripts": {
     "start": "elm-app start",
     "build": "elm-app build",
-    "deploy": "elm-app build && gh-pages -d build --remote origin-github"
+    "deploy": "elm-app build && gh-pages -d build --remote origin"
   },
   "dependencies": {
     "spectre.css": "^0.5.1"
