@@ -7,7 +7,7 @@ A simple character guessing game - written in [elm](http://elm-lang.org).
 Install elm:
 
 ```bash
-$ npm install -g elm
+$ npm install -g elm@0.18
 ```
 
 Run it:
