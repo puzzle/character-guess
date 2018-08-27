@@ -249,15 +249,15 @@ viewStatusBar list =
 viewGuess : Model -> Html Msg
 viewGuess model =
     div []
-        [ div [ class "container grid-lg" ] (List.map viewImage <| firstRecord model)
+        [ div [ class "container grid-lg" ] (List.map (viewImage model.endpoint) <| (firstRecord model))
         , div [ class "container grid-lg" ] (List.map (viewButton model) model.candidates)
         ]
 
 
-viewImage : Record -> Html Msg
-viewImage record =
+viewImage : String -> Record -> Html Msg
+viewImage  endpoint record =
     figure [ class "column" ]
-        [ img [ src (Api.url ++ record.image) ] []
+        [ img [ src (Api.url ++ endpoint ++ "/images/" ++  record.image) ] []
         ]
 
 

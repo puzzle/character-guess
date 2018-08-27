@@ -18,7 +18,7 @@ type alias Record =
 
 url : String
 url =
-    "https://swapi.glitch.me/"
+    ""
 
 
 empty : Record
@@ -32,7 +32,7 @@ getRecords : String -> Http.Request (List Record)
 getRecords path =
     let
         resource =
-            url ++ path
+            url ++ path ++ "/list.json"
     in
         Http.get resource (decodeRecords path)
 
